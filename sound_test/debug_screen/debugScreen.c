@@ -131,7 +131,8 @@ static PsvDebugScreenFont *psvDebugScreenFontCurrent = &psvDebugScreenFont;
 #include <psp2/display.h>
 #include <psp2/kernel/sysmem.h>
 #include <psp2/kernel/threadmgr.h>
-static void* base; // pointer to frame buffer
+static void* base; // back frame buffer
+static void* fb_front; // front frame buffer
 #else
 #define NO_psvDebugScreenInit
 #ifndef psvDebugScreenInitReplacement
@@ -429,11 +430,28 @@ int psvDebugScreenInit() {
 	}
 
 	mutex = sceKernelCreateMutex("log_mutex", 0, 0, NULL);
-	SceUID displayblock = sceKernelAllocMemBlock("display", SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW, (SCREEN_FB_SIZE), NULL);
+
+	SceUID displayblock = sceKernelAllocMemBlock("display", SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW, 2*SCREEN_FB_SIZE, NULL);
 	sceKernelGetMemBlockBase(displayblock, (void**)&base);
-	SceDisplayFrameBuf frame = { sizeof(frame), base, (SCREEN_FB_WIDTH), 0, (SCREEN_WIDTH), (SCREEN_HEIGHT) };
+	fb_front = base + SCREEN_FB_SIZE;
+
+	SceDisplayFrameBuf frame = { sizeof(frame), fb_front, (SCREEN_FB_WIDTH), 0, (SCREEN_WIDTH), (SCREEN_HEIGHT) };
 	return sceDisplaySetFrameBuf(&frame, SCE_DISPLAY_SETBUF_NEXTFRAME);
 #endif
+}
+
+void psvDebugScreenSwapFb(void) {
+	sceKernelLockMutex(mutex, 1, NULL);
+	fb_front = (void*)((int)fb_front ^ (int)base);
+	base = (void*)((int)fb_front ^ (int)base);
+	fb_front = (void*)((int)fb_front ^ (int)base);
+	SceDisplayFrameBuf frame = { sizeof(frame), fb_front, (SCREEN_FB_WIDTH), 0, (SCREEN_WIDTH), (SCREEN_HEIGHT) };
+	sceDisplaySetFrameBuf(&frame, SCE_DISPLAY_SETBUF_NEXTFRAME);
+	sceKernelUnlockMutex(mutex, 1);
+}
+
+void psvDebugScreenBlank(char c) {
+	memset(base, c, SCREEN_FB_SIZE);
 }
 
 /*
