@@ -417,6 +417,17 @@ int psvDebugScreenInit() {
 	psvDebugScreenInitReplacement();
 	return 0; // avoid linking non-initializer (prx) with sceDisplay/sceMemory
 #else
+	// reverse the bits in the font
+	for (int i = 0; i < 768; i++) {
+		char reversed = 0;
+		for (int j = 0; j < 8; j++) {
+			if (F->glyphs[i] & (1 << j)) {
+				reversed |= 128u >> j;
+			}
+		}
+		F->glyphs[i] = reversed;
+	}
+
 	mutex = sceKernelCreateMutex("log_mutex", 0, 0, NULL);
 	SceUID displayblock = sceKernelAllocMemBlock("display", SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW, (SCREEN_FB_SIZE), NULL);
 	sceKernelGetMemBlockBase(displayblock, (void**)&base);
