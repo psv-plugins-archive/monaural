@@ -38,6 +38,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #define S_AUDIO_LEN (N_SAMPLE_ALIGNED * 4)
 
 #define UI_BUF_LEN 0x1000
+#define X_MARGIN 20
+#define Y_MARGIN 20
+#define CLEAR_COLOUR 0xFF
+#define BG_COLOUR 0xFFFFFF
+#define FG_COLOUR 0x404040
 
 typedef struct {
 	int row;
@@ -50,13 +55,13 @@ static void ui_init(void) {
 	PsvDebugScreenFont *font = psvDebugScreenGetFont();
 	font = psvDebugScreenScaleFont2x(font);
 	font = psvDebugScreenSetFont(font);
-	psvDebugScreenSetBgColor(0xFFFFFF);
-	psvDebugScreenSetFgColor(0x404040);
+	psvDebugScreenSetBgColor(BG_COLOUR);
+	psvDebugScreenSetFgColor(FG_COLOUR);
 }
 
 static void ui_reset(void) {
 	psvDebugScreenBlank(0xFF);
-	psvDebugScreenSetCoordsXY((int[]){20}, (int[]){20});
+	psvDebugScreenSetCoordsXY((int[]){X_MARGIN}, (int[]){Y_MARGIN});
 }
 
 static void ui_flush(void) {
@@ -67,9 +72,9 @@ __attribute__((__format__ (__printf__, 1, 2)))
 static void ui_line(char *format, ...) {
 	int y;
 	psvDebugScreenGetCoordsXY((int[]){0}, &y);
-	psvDebugScreenSetCoordsXY((int[]){20}, &y);
+	psvDebugScreenSetCoordsXY((int[]){X_MARGIN}, &y);
 
-	char buf[0x1000];
+	char buf[UI_BUF_LEN];
 	va_list opt;
 	va_start(opt, format);
 	vsnprintf(buf, sizeof(buf), format, opt);
@@ -107,9 +112,12 @@ static void ui_render(ui_state *state) {
 }
 
 static void play_test_sound(void *mem_base) {
-	int port = sceAudioOutOpenPort(0, N_SAMPLE_ALIGNED, FREQ, 1);
+	int port = sceAudioOutOpenPort(
+		SCE_AUDIO_OUT_PORT_TYPE_MAIN,
+		N_SAMPLE_ALIGNED,
+		FREQ,
+		SCE_AUDIO_OUT_PARAM_FORMAT_S16_STEREO);
 	if (port < 0) { goto done; }
-	sceAudioOutSetVolume(port, 3, (int[]){16384, 16384});
 
 	SceUID fd = sceIoOpen("app0:ps.pcm", SCE_O_RDONLY, 0);
 	if (fd < 0) { goto release_port; }
