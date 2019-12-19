@@ -18,3 +18,7 @@ ur0:tai/monaural.skprx
 ```
 
 By default mono audio is on and channel balance is even. Install MonauralConfig.vpk to change settings and test sound.
+
+## See more
+
+CBPS ([forum](https://forum.devchroma.nl/index.php), [discord](https://discord.gg/2nDCbxJ))
