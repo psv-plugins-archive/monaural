@@ -21,7 +21,6 @@ add_executable(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
   SceIofilemgrForDriver_stub
-  SceSysclibForDriver_stub
   SceSysmemForDriver_stub
   taihenForKernel_stub
   taihenModuleUtils_stub

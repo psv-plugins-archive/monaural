@@ -17,7 +17,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // ＲＩＫＫＡ　ＰＲＯＪＥＣＴ
 
-#include <string.h>
 #include <arm_neon.h>
 #include <psp2kern/kernel/modulemgr.h>
 #include <psp2kern/kernel/sysmem.h>
@@ -40,10 +39,8 @@ static tai_hook_ref_t hook_ref[N_HOOK];
 #define N_INJECT 3
 static SceUID inject_id[N_INJECT];
 
-#define MAIN_NAME "SceAudioUserMapMain"
-#define MAIN_LEN sizeof(MAIN_NAME)
-#define BGM_NAME "SceAudioUserMapBgm"
-#define BGM_LEN sizeof(BGM_NAME)
+static char *sce_audio_map_main_name;
+static char *sce_audio_map_bgm_name;
 
 void MonauralGetVersion(monaural_version_t *version) {
 	monaural_version_t kversion;
@@ -66,7 +63,7 @@ static int ksceKernelMapUserBlockDefaultType_hook(
 		const char *name, int permission, const void *ubuf, unsigned int size,
 		void **kpage, unsigned int *ksize, unsigned int *koffset) {
 
-	if (strncmp(MAIN_NAME, name, MAIN_LEN) == 0 || strncmp(BGM_NAME, name, BGM_LEN) == 0) {
+	if (name == sce_audio_map_main_name || name == sce_audio_map_bgm_name) {
 		if (config.mode == MONAURAL_MODE_OFF) {
 			return TAI_CONTINUE(int, hook_ref[0], name, 1, ubuf, size, kpage, ksize, koffset);
 		}
@@ -159,6 +156,10 @@ int module_start(SceSize argc, const void *argv) { (void)argc; (void)argv;
 
 	// get sceAudioOutSetVolume addr
 	GLZ(module_get_export_func(KERNEL_PID, "SceAudio", 0x438BB957, 0x64167F11, (uintptr_t*)&sceAudioOutSetVolume));
+
+	// get cstrings "SceAudioUserMapMain" and "SceAudioUserMapBgm"
+	GLZ(module_get_offset(KERNEL_PID, minfo.modid, 0, 0x7F10, (uintptr_t*)&sce_audio_map_main_name));
+	GLZ(module_get_offset(KERNEL_PID, minfo.modid, 0, 0x7F24, (uintptr_t*)&sce_audio_map_bgm_name));
 
 	// read config
 	if (read_config(&config) < 0) { reset_config(&config); }
