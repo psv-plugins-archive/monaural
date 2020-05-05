@@ -1,6 +1,6 @@
 /*
-Monaural Sound Test - main.c
-Copyright (C) 2019 浅倉麗子
+This file is part of Monaural
+Copyright 2019 浅倉麗子
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
