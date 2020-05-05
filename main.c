@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-// ＲＩＫＫＡ　ＰＲＯＪＥＣＴ
+// 六花ＰＲＯＪＥＣＴ
 
 #include <arm_neon.h>
 #include <psp2kern/kernel/modulemgr.h>
